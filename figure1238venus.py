@@ -18,12 +18,9 @@ def equation30(tau_0,tau_rc,betan4):
         float : Value of lhs - rhs of equation 30.
     """
     # Define lhs of Eq. 30.
-    lhs = (tau_0 / tau_rc)**(betan4) * np.exp(-D * (tau_0 - tau_rc)) * (
-        1 + (np.exp(D * tau_0) / (D * tau_0)**(betan4)) * (
-            gammaincc(1 + betan4,D * tau_rc) - gammaincc(1 + betan4, D * tau_0)
-        ))
+    lhs = (tau_0/tau_rc)**(betan4)*np.exp(-D*(tau_0-tau_rc))*(1 + (np.exp(D*tau_0)/(D*tau_0)**(betan4))*(gammaincc(1+betan4,D*tau_rc)-gammaincc(1+betan4,D*tau_0)))
     #Define the rhs of Eq. 30
-    rhs = (2 + D * tau_rc) / (1 + D * tau_rc)
+    rhs = (2+D*tau_rc)/(1+D*tau_rc)
     # Calculate lhs - rhs
     f = lhs-rhs
     return f
@@ -83,9 +80,8 @@ def equation31(tau_rc,betan4):
     Returns:
         float: lhs - rhs
     """
-    # Define the right-hand side of the equation
-    rhs = (2 + D * tau_rc) / (1 + D * tau_rc)
-    lhs = gammaincc(1 + betan4,D * tau_rc)/(np.exp(-D * tau_rc) * (D*tau_rc)**betan4)
+    rhs = (2+D*tau_rc)/(1+D*tau_rc)
+    lhs = gammaincc(1+betan4,D*tau_rc)/(np.exp(-D*tau_rc)*(D*tau_rc)**betan4)
     return lhs - rhs
 
 def solve_for_taurc(betan4,guess):

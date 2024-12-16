@@ -31,55 +31,60 @@ def get_temp_rad(p,p0,tau0,F1,F2,D,k1,k2,Fi=0):
     Returns:
         radiative equilibirum temperature : W/m^2
     """
-    term2 = F1/2 * ( 1 + D/k1 + (k1/D - D/k1)*np.exp(-k1*tau0* (p/p0)))
-    term3 = F2/2 * ( 1 + D/k2 + (k2/D - D/k2)*np.exp(-k2*tau0* (p/p0)))
-    term4 = Fi/2 * (1 + D*tau0* (p/p0))
+    term2 = F1/2*(1+D/k1+(k1/D-D/k1)*np.exp(-k1*tau0*(p/p0)))
+    term3 = F2/2*(1+D/k2+(k2/D-D/k2)*np.exp(-k2*tau0*(p/p0)))
+    term4 = Fi/2*(1+D*tau0*(p/p0))
     t = term2+term3+term4
     return (t/sigma)**(1/4)
 
 def equation21(taus):
+    # Define equation 21 like in the paper
     tau_rc, tau0 = taus
     lhs = sigma*(T0**4) *(tau_rc/tau0)**(4*beta/n)
-    term2 = F1/2 * ( 1 + D/k1 + (k1/D - D/k1)*np.exp(-k1*tau_rc))
-    term3 = F2/2 * ( 1 + D/k2 + (k2/D - D/k2)*np.exp(-k2*tau_rc))
-    term4 = Fi/2 * (1 + D*tau_rc)
+    term2 = F1/2*(1+D/k1+(k1/D-D/k1)*np.exp(-k1*tau_rc))
+    term3 = F2/2*(1+D/k2+(k2/D-D/k2)*np.exp(-k2*tau_rc))
+    term4 = Fi/2*(1+D*tau_rc)
     rhs = term2+term3+term4
-    return lhs - rhs
+    return lhs-rhs
 
 def equation19(taurc):
-    term1 = (F1/2)*(1+D/k1 + (1 - D / k1) * np.exp(-k1 * taurc))
-    term2 = (F2/2)*(1+D/k2 + (1 - D / k2) * np.exp(-k2 * taurc))
+    # Define equaiton 19 like in the paper
+    term1 = (F1/2)*(1+D/k1+(1-D/k1)*np.exp(-k1*taurc))
+    term2 = (F2/2)*(1+D/k2+(1-D/k2)*np.exp(-k2*taurc))
     term3 = (Fi/2)*(2+D*taurc)
     return term1 + term2 + term3
 
 def equation13(taurc,tau0):
+    # Define equaiton 13 like in the paper
     coef = sigma*T0**4*np.exp(-D*taurc)
     term1 = np.exp(-D*tau0)
-    term2 = (1/(D*tau0)**(4*beta)) * gammaincc(1 + 4*beta,D*taurc)
-    term3 = (1/(D*tau0)**(4*beta)) * gammaincc(1 + (4*beta),D*tau0)
-    return coef * (term1 + term2 - term3)
+    term2 = (1/(D*tau0)**(4*beta))*gammaincc(1+4*beta,D*taurc)
+    term3 = (1/(D*tau0)**(4*beta))*gammaincc(1+(4*beta),D*tau0)
+    return coef*(term1+term2-term3)
 
 def condition(taus):
+    # Define condition form eq 19 and 13 =0
     taurc,tau0 = taus
     return equation19(taurc) - equation13(taurc,tau0)
 
 def system_tau(vars):
+    # Define system of equation to solve for tau rc and tau0
     taurc,tau0 = vars
 
     return [equation21([taurc,tau0]),condition([taurc,tau0])]
 
-Fi = 0  # Earth has no internal energy source
-n = 1  # Pressure dependence of opacity, given
-alpha = 6/9  # Ratio of moist lapse rate (6) to dry adiabatic lapse rate
-gamma = 1.4 # Ratio of cp to cv for nitrogen and oxygen, approximate
-beta = 0.171  # Function of alpha and gamma, approximate
-p0 = 101.3  # Given, kPa
-T0 = 288  # Given, K
-D = 1.66  # Trial use, in paper
-F1 = 1500-1370
-k1 = 100
-F2 = 1370
-k2 = 1e-2
+Fi = 0  # no internal energy source
+n = 1  # given
+alpha = 6/9  # moist lapse rate/dry adiabatic lapse rate
+gamma = 1.4 # cp/cv for nitrogen and oxygen
+beta = 0.171  # Function of alpha and gamma
+p0 = 101.3  # given, kPa
+T0 = 288  # given, K
+D = 1.66  # given
+F1 = 1500-1370 # total flux minus main
+k1 = 100 # big number, seems ok from my googling
+F2 = 1370 # Main fluc
+k2 = 1e-2 # Small, ok from googling
 
 
 taurc_test = np.linspace(0,1,500)
@@ -106,14 +111,9 @@ plt.show()
 # Initial guess
 initial_guess = [2/3, 1.1]
 taurc,tau0 = fsolve(system_tau, initial_guess)
-print(" ")
-print(taurc,tau0)
-print(" ")
 
-
-p_rc = p0*(taurc/tau0)**(1/n)
-p = np.linspace(0,p0, 100)
 # Define radiative and convective regions
+p_rc = p0*(taurc/tau0)**(1/n)
 p_rad = np.linspace(0,p_rc,1000)
 p_conv = np.linspace(p_rc,p0,100)[1:]
 # Calculate the temperature profile for both regions
